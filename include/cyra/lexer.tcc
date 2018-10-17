@@ -15,41 +15,22 @@
     this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef CYRA_PARSER_HH
-#define CYRA_PARSER_HH
+#ifndef CYRA_LEXER_TCC
+#define CYRA_LEXER_TCC
+
+#ifndef CYRA_LEXER_HH
+#   error lexer.tcc is intended for internal use only
+#endif
 
 namespace cyra {
 
-class argument;
-class commandline;
-class lexer;
-class range;
-
-class parser {
-public:
-    parser(lexer& style);
-    
-    commandline& operator()(commandline& terminal);
-    
-private:
-    lexer& m_style;
-    
-    range* m_scope{nullptr};
-    argument* m_last{nullptr};
-    
-    bool m_operand{false}; // an operand is required
-    bool m_value{false}; // an option value is required
-    
-    bool command();
-    bool option();
-    bool operand();
-};
-
-template<typename Lexer>
-commandline& parse(commandline& terminal);
-
+template<typename Type>
+lexer& lexer::operator>>(Type& output)
+{
+    m_ready=write(m_input, output);
+    return *this;
 }
 
-#include "parser.tcc"
+}
 
 #endif

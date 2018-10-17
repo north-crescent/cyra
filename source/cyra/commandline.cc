@@ -15,41 +15,31 @@
     this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef CYRA_PARSER_HH
-#define CYRA_PARSER_HH
+#include <cyra/commandline.hh>
+
+#include <utility>
+#include <vector>
 
 namespace cyra {
 
-class argument;
-class commandline;
-class lexer;
-class range;
-
-class parser {
-public:
-    parser(lexer& style);
-    
-    commandline& operator()(commandline& terminal);
-    
-private:
-    lexer& m_style;
-    
-    range* m_scope{nullptr};
-    argument* m_last{nullptr};
-    
-    bool m_operand{false}; // an operand is required
-    bool m_value{false}; // an option value is required
-    
-    bool command();
-    bool option();
-    bool operand();
-};
-
-template<typename Lexer>
-commandline& parse(commandline& terminal);
-
+commandline::commandline(int count, const char* const* values)
+    : commandline{std::vector<std::string>{values, count+values}}
+{
 }
 
-#include "parser.tcc"
+commandline::operator bool() const noexcept
+{
+    return good();
+}
 
-#endif
+bool commandline::good() const noexcept
+{
+    return m_good;
+}
+
+const std::string& commandline::path() const noexcept
+{
+    return m_path;
+}
+
+}

@@ -19,6 +19,7 @@
 #define CYRA_CONTAINER_HH
 
 #include <functional>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -29,7 +30,7 @@ class argument;
 template<typename Type>
 class container: protected std::vector<Type> {
 public:
-    operator bool() const noexcept;
+    explicit operator bool() const noexcept;
     
     using std::vector<Type>::empty;
     
@@ -45,9 +46,9 @@ protected:
 
 class range: public container<std::reference_wrapper<argument>> {
 public:
-    template<typename String>
-    std::optional<value_type> operator[](String&& key) const;
+    std::optional<value_type> operator[](const std::string& key) const; // match
     
+    std::optional<value_type> query(const std::string& key) const;
     std::optional<value_type> match(const std::string& key) const;
     
     void attach(argument& object);
@@ -60,15 +61,27 @@ void attach(range& scope, argument& object, Arguments&&... objects);
 template<typename... Arguments>
 void detach(range& scope, argument& object, Arguments&&... objects);
 
+class tray {
+public:
+    virtual ~tray()=default;
+    
+    virtual void append(std::string value)=0;
+    
+protected:
+    tray()=default;
+};
+
 template<typename Type>
-class list: public container<Type> {
+class list: public tray, public container<Type> {
 public:
     using std::vector<Type>::operator[];
     using std::vector<Type>::at;
     
-    void append(std::string value);
+    virtual void append(std::string value) override;
 };
 
 }
+
+#include "container.tcc"
 
 #endif

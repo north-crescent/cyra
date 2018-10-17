@@ -20,9 +20,8 @@
 
 #include <cyra/container.hh>
 
-#include <optional>
 #include <string>
-#include <vector>
+#include <queue>
 
 namespace cyra {
 
@@ -33,27 +32,28 @@ public:
     commandline(int count, const char* const* values);
     
     template<typename Container>
-    commandline(Container arguments);
+    commandline(Container&& arguments);
     
     template<typename Container>
     commandline(const Container& arguments);
     
     template<typename Iterator>
-    commandline(Iterator begin, Iterator end);
+    commandline(Iterator first, Iterator last);
     
-    operator bool() const noexcept;
-    bool good() const noexcept; // whether parsing has succeeded
+    explicit operator bool() const noexcept;
+    bool good() const noexcept;
     
-    const std::optional<std::string>& path() const;
+    const std::string& path() const noexcept;
     
 private:
-    std::vector<std::string> m_arguments;
-    std::optional<std::string> m_path;
+    std::queue<std::string> m_arguments;
+    std::string m_path;
     
-    bool m_parsed{false};
-    bool m_good{false};
+    bool m_good{false}; // whether parsing has succeeded
 };
 
 }
+
+#include "commandline.tcc"
 
 #endif

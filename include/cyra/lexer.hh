@@ -31,14 +31,9 @@ public:
     
     struct option {
         std::string key;
-        std::optional<std::string> value;
-    };
-    
-    struct group {
-        std::string key;
         
-        std::string value;
-        std::string rest;
+        std::optional<std::string> value;
+        std::optional<std::string> rest;
     };
     
     struct operand {
@@ -47,12 +42,11 @@ public:
     
     virtual ~lexer()=default;
     
-    operator bool() const noexcept;
+    explicit operator bool() const noexcept;
     bool ready() const noexcept; // write successful, ready for input
     
-    lexer& operator<<(std::string input);
-    
     lexer& operator<<(bool ready);
+    lexer& operator<<(std::string input);
     
     template<typename Type>
     lexer& operator>>(Type& output);
@@ -60,27 +54,29 @@ public:
 protected:
     lexer()=default;
     
+    virtual bool write(const std::string& input, command& output)=0;
+    virtual bool write(const std::string& input, option& output)=0;
+    virtual bool write(const std::string& input, operand& output)=0;
+    
 private:
     std::string m_input;
     bool m_ready{true};
-    
-    virtual bool write(const std::string& input, command& output)=0;
-    virtual bool write(const std::string& input, option& output)=0;
-    virtual bool write(const std::string& input, group& output)=0;
-    virtual bool write(const std::string& input, operand& output)=0;
 };
 
 class posix: public lexer {
+protected:
     virtual bool write(const std::string& input, command& output) override;
     virtual bool write(const std::string& input, option& output) override;
-    virtual bool write(const std::string& input, group& output) override;
     virtual bool write(const std::string& input, operand& output) override;
 };
 
 class gnu: public posix {
+protected:
     virtual bool write(const std::string& input, option& output) override;
 };
 
 }
+
+#include "lexer.tcc"
 
 #endif

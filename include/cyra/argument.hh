@@ -39,14 +39,14 @@ public:
     public:
         virtual ~qualifier()=default;
         
-        operator bool() const noexcept;
+        explicit operator bool() const noexcept;
         bool empty() const noexcept;
         
         operator std::string() const;
         std::string value() const;
         
         std::string type() const;
-        std::string key() const; // current if available, standard otherwise
+        std::optional<std::string> key() const; // current or standard
         
         const std::optional<std::string>& standard() const noexcept;
         const std::optional<std::string>& current() const noexcept;
@@ -77,7 +77,7 @@ public:
         std::size_t minimum() const noexcept;
         std::size_t maximum() const noexcept;
         
-        operator bool() const noexcept;
+        explicit operator bool() const noexcept;
         bool good() const noexcept;
         
         bool lower() const noexcept; // value beyond lower boundary
@@ -98,7 +98,7 @@ public:
     
     virtual ~argument()=default;
     
-    operator bool() const noexcept;
+    explicit operator bool() const noexcept;
     bool set() const noexcept;
     
     category type() const noexcept;
@@ -170,6 +170,11 @@ public:
 template<typename Type>
 class operand: public argument, public list<Type> {
 public:
+    class qualifier: public argument::qualifier {
+    public:
+        qualifier();
+    };
+    
     operand(std::size_t minimum=1);
     operand(std::size_t minimum, std::size_t maximum);
     
@@ -177,5 +182,7 @@ public:
 };
 
 }
+
+#include "argument.tcc"
 
 #endif
