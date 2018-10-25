@@ -22,7 +22,10 @@
 #   error container.tcc is intended for internal use only
 #endif
 
+#include <cyra/cast.hh>
+
 #include <initializer_list>
+#include <type_traits>
 #include <utility>
 
 namespace cyra {
@@ -56,7 +59,11 @@ void detach(range& scope, argument& object, Arguments&&... objects)
 template<typename Type>
 void list<Type>::append(std::string value)
 {
-    std::vector<Type>::push_back(std::move(value)); // TODO type conversion
+    if constexpr (std::is_same_v<Type, decltype(value)>) {
+        std::vector<Type>::push_back(std::move(value));
+    } else {
+        std::vector<Type>::push_back(cast<Type>(value));
+    }
 }
 
 }
