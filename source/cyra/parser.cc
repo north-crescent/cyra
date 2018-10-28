@@ -18,10 +18,10 @@
 #include <cyra/argument.hh>
 #include <cyra/container.hh>
 #include <cyra/commandline.hh>
+#include <cyra/exception.hh>
 #include <cyra/lexer.hh>
 #include <cyra/parser.hh>
 
-#include <stdexcept>
 #include <string>
 #include <utility>
 
@@ -30,6 +30,33 @@ namespace cyra {
 parser::parser(lexer& style)
     : m_style{style}
 {
+}
+
+namespace {
+
+void verify(const range& scope)
+{
+    for (const argument& object:scope) {
+        if (object.count().lower()) {
+            throw deficient_count{object.name(),
+                object.count(), object.count().minimum()};
+        } else if (object.count().upper()) {
+            throw excessive_count{object.name(),
+                object.count(), object.count().maximum()};
+        }
+        
+        if (object && object.type()==argument::category::command) {
+            auto next=dynamic_cast<const range*>(&object);
+            
+            if (!next) {
+                throw type_error{"argument", "range"};
+            }
+            
+            verify(*next);
+        }
+    }
+}
+
 }
 
 commandline& parser::operator()(commandline& terminal)
@@ -50,9 +77,11 @@ commandline& parser::operator()(commandline& terminal)
             lexer::operand argument;
             m_style >> argument;
             
-            throw std::runtime_error{"invalid argument "+argument.value};
+            throw invalid_argument{argument.value};
         }
     }
+    
+    verify(terminal);
     
     m_scope=nullptr;
     m_last=nullptr;
@@ -95,7 +124,7 @@ bool parser::command()
             m_scope=dynamic_cast<range*>(&object);
             
             if (!m_scope) {
-                throw std::logic_error{"unable to cast command to range"};
+                throw type_error{"command", "range"};
             }
             
             m_last=&object;
@@ -115,8 +144,8 @@ bool parser::option()
         }
         
         if (m_value) {
-            throw std::runtime_error{m_last->name().value()+
-                " requires at least one value"};
+            throw deficient_count{m_last->name(),
+                m_last->count(), m_last->count().minimum()};
         }
         
         const auto success=query(argument::category::option,
@@ -143,7 +172,7 @@ bool parser::option()
         });
         
         if (!success && !m_operand) {
-            throw std::runtime_error{"unexpected option "+option.key};
+            throw invalid_argument{"option", option.key};
         }
         
         return success;
@@ -154,7 +183,7 @@ bool parser::option()
         if (const auto storage=dynamic_cast<tray*>(m_last); storage) {
             storage->append(std::move(operand.value));
         } else {
-            throw std::logic_error{"unable to cast argument to tray"};
+            throw type_error{"argument", "tray"};
         }
         
         ++m_last->count();
@@ -175,7 +204,7 @@ bool parser::operand()
                 auto storage=dynamic_cast<tray*>(&object);
                 
                 if (!storage) {
-                    throw std::logic_error{"unable to cast argument to tray"};
+                    throw type_error{"argument", "tray"};
                 }
                 
                 storage->append(std::move(operand.value));

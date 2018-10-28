@@ -16,11 +16,11 @@
 */
 
 #include <cyra/argument.hh>
+#include <cyra/exception.hh>
 
 #include <algorithm>
 #include <limits>
 #include <regex>
-#include <stdexcept>
 #include <utility>
 
 namespace cyra {
@@ -120,7 +120,7 @@ argument::quantifier::quantifier(std::size_t minimum, std::size_t maximum)
     : m_minimum{minimum}, m_maximum{maximum}
 {
     if (minimum>maximum || maximum==0) {
-        throw std::logic_error{"invalid quantifier boundaries"};
+        throw invalid_quantifier{minimum, maximum};
     }
 }
 
@@ -172,11 +172,7 @@ auto argument::quantifier::operator++() -> quantifier&
 auto argument::quantifier::operator+=(std::size_t increment) -> quantifier&
 {
     if (std::numeric_limits<decltype(increment)>::max()-increment < m_value) {
-        throw std::runtime_error{"numeric limit overflow"};
-    }
-    
-    if (m_value+increment > m_maximum) {
-        throw std::runtime_error{"argument specified too often"};
+        throw invalid_increment{m_value, increment};
     }
     
     m_value+=increment;
@@ -191,11 +187,7 @@ auto argument::quantifier::operator--() -> quantifier&
 auto argument::quantifier::operator-=(std::size_t decrement) -> quantifier&
 {
     if (std::numeric_limits<decltype(decrement)>::min()+decrement > m_value) {
-        throw std::runtime_error{"numeric limit underflow"};
-    }
-    
-    if (m_value-decrement < m_minimum) {
-        throw std::runtime_error{"argument specified too less"};
+        throw invalid_decrement{m_value, decrement};
     }
     
     m_value-=decrement;
@@ -232,7 +224,7 @@ argument::argument(category type,
     : m_type{type}, m_name{std::move(name)}, m_count{std::move(count)}
 {
     if (!m_name || !m_count) {
-        throw std::logic_error{"invalid argument initialization"};
+        throw initialization_error{"invalid initialization of argument"};
     }
 }
 
@@ -243,7 +235,7 @@ command::qualifier::qualifier(std::initializer_list<std::string> keys)
     
     for (const auto& key:keys) {
         if (!std::regex_match(key, expression)) {
-            throw std::logic_error{"invalid command qualifier"};
+            throw invalid_qualifier{key, "command"};
         }
     }
 }
@@ -269,7 +261,7 @@ option::qualifier::qualifier(std::initializer_list<std::string> keys)
                 m_wide=key;
             }
         } else {
-            throw std::logic_error{"invalid option qualifier"};
+            throw invalid_qualifier{key, "option"};
         }
     }
 }

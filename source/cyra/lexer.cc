@@ -15,10 +15,10 @@
     this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <cyra/exception.hh>
 #include <cyra/lexer.hh>
 
 #include <regex>
-#include <stdexcept>
 #include <utility>
 
 namespace cyra {
@@ -42,7 +42,7 @@ lexer& lexer::operator<<(bool ready)
 lexer& lexer::operator<<(std::string input)
 {
     if (!m_ready) {
-        throw std::logic_error{"lexer not ready"};
+        throw usage_error{"lexer not ready"};
     }
     
     m_input=std::move(input);

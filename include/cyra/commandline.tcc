@@ -22,8 +22,9 @@
 #   error commandline.tcc is intended for internal use only
 #endif
 
+#include <cyra/exception.hh>
+
 #include <iterator>
-#include <stdexcept>
 
 namespace cyra {
 
@@ -45,7 +46,7 @@ commandline::commandline(Iterator first, Iterator last)
     : m_arguments{{first, last}}
 {
     if (m_arguments.empty()) {
-        throw std::logic_error{"empty argument list"};
+        throw initialization_error{"no arguments supplied to commandline"};
     }
     
     m_path=m_arguments.front();

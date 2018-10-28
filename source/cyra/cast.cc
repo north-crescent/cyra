@@ -16,6 +16,7 @@
 */
 
 #include <cyra/cast.hh>
+#include <cyra/exception.hh>
 
 #include <algorithm>
 #include <cctype>
@@ -54,14 +55,14 @@ bool cast(const std::string& value)
         }
     }
     
-    throw std::runtime_error{value+" is not a boolean"};
+    throw invalid_type{value, "a boolean"};
 }
 
 template<>
 char cast(const std::string& value)
 {
     if (value.size()!=1) {
-        throw std::runtime_error{value+" is not a character"};
+        throw invalid_type{value, "a character"};
     }
     
     return value.front();
@@ -159,13 +160,13 @@ Output convert(const std::string& type, const std::string& value)
             result=extract<Output>(value);
         }
     } catch (const std::invalid_argument& error) {
-        throw std::runtime_error{value+" is not "+type};
+        throw invalid_type{value, type};
     } catch (const std::out_of_range& error) {
-        throw std::runtime_error{value+" out of range of "+type};
+        throw range_error{value+" out of range of "+type};
     } catch (const std::underflow_error& error) {
-        throw std::runtime_error{value+" below range of "+type};
+        throw range_underflow{value, type};
     } catch (const std::overflow_error& error) {
-        throw std::runtime_error{value+" above range of "+type};
+        throw range_overflow{value, type};
     }
     
     return result;
