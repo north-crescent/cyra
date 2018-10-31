@@ -16,7 +16,7 @@
 
 MAKEFLAGS += --no-builtin-rules --no-builtin-variables --no-print-directory
 
-VERSION := 0.0.0-alpha
+VERSION := 0.1.0-alpha
 
 ARCHIVE_DIRECTORY := archive
 BINARY_DIRECTORY := binary
